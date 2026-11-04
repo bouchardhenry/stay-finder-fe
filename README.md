@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StayFinder – frontend
 
-## Getting Started
+Next.js 16 (App Router) + TypeScript + Tailwind.
 
-First, run the development server:
+Backend och lista över uppfyllda kriterier: se `stay-finder-be` (README.md och KRITERIER.md).
+
+## Kom igång
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+echo NEXT_PUBLIC_BACKEND_URL=http://localhost:3000 > .env.local
+npm run dev   # http://localhost:3001 (backend kör på 3000)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Inloggningen är en httpOnly-cookie som backend sätter. Alla anrop görs med `credentials: "include"` (se `utils/api.ts`). Frontenden måste köra på `localhost:3001`, eftersom backend bara tillåter den adressen i CORS (`FRONTEND_URL`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Sidor
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Innehåll |
+|---|---|
+| `/` | Lista med filter (plats, maxpris, gäster, lediga datum) och sortering på pris |
+| `/properties/[id]` | Detaljsida, bokningsformulär med kalender, nätter + totalpris, bokningar för boendet |
+| `/auth/login`, `/auth/register` | Logga in / skapa konto |
+| `/bookings` | Mina bokningar |
+| `/host/properties/new` | Skapa boende |
+| `/host/properties/[id]/edit` | Ändra boende (ägare) |
 
-## Learn More
+Laddningsvy: `app/loading.tsx`, `ListSkeleton`. Felvy: `app/error.tsx`. 404 för boende: `app/properties/[id]/not-found.tsx`.
 
-To learn more about Next.js, take a look at the following resources:
+## Struktur
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/          sidor (server components hämtar publik data)
+components/   UI; klientkomponenter för formulär och bokningar
+contexts/     AuthContext – vem som är inloggad (G2)
+utils/        api.ts (fetch + felformat), auth-, property-, bookingService
+types/        typer genererade från databasen + API-typer
+```

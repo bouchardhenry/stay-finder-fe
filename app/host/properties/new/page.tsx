@@ -1,20 +1,21 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import AuthGate from "@/components/AuthGate";
 import PropertyForm from "@/components/PropertyForm";
 import T from "@/components/typography";
 import { createProperty } from "@/utils/propertyService";
-import { useRouter } from "next/navigation";
+import type { PropertyInput } from "@/types/property";
 
+/** G7: en inloggad användare skapar ett boende via formuläret. */
 export default function NewPropertyPage() {
   const router = useRouter();
 
-  async function onCreate(formData: FormData) {
-    const result = await createProperty(formData);
-    if (result.propertyId) {
-      router.push(`/properties/${result.propertyId}`);
-    }
-    return result;
+  async function onCreate(property: PropertyInput) {
+    const result = await createProperty(property);
+    if (!result.ok) return result.error;
+    router.push(`/properties/${result.data.property_id}`);
+    return null;
   }
 
   return (

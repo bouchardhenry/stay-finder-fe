@@ -1,5 +1,6 @@
 import type { Property } from "@/types/property";
 import { cn } from "@/utils/cn";
+import { formatPrice } from "@/utils/bookingService";
 import Link from "next/link";
 import T from "./typography";
 
@@ -8,10 +9,7 @@ type PropertyCardProps = {
   className?: string;
 };
 
-export default function PropertyCard({
-  property,
-  className,
-}: PropertyCardProps) {
+export default function PropertyCard({ property, className }: PropertyCardProps) {
   return (
     <Link
       href={`/properties/${property.property_id}`}
@@ -20,13 +18,18 @@ export default function PropertyCard({
         className,
       )}
     >
-      <T.Header size="md">{property.title}</T.Header>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        {property.location}
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <T.Header size="md">{property.title}</T.Header>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{property.location}</p>
+        </div>
+        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+          {property.kind}
+        </span>
+      </div>
       <p className="mt-4 text-sm font-medium">
-        {property.price_per_night} kr
-        <span className="font-normal text-zinc-500"> / night</span>
+        {formatPrice(property.price_per_night)}
+        <span className="font-normal text-zinc-500"> / night · up to {property.max_guests} guests</span>
       </p>
     </Link>
   );

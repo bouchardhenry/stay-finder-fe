@@ -1,9 +1,18 @@
-import type { Database } from "./database.types.js";
+import type { Database } from "./database.types";
 
-export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
+type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 
-type BookingInsert = Database["public"]["Tables"]["bookings"]["Insert"];
+export type BookingStatus = "pending" | "confirmed" | "cancelled";
 
-export type NewBooking = Omit<BookingInsert, "booking_id" | "created_at">
+export type Booking = Omit<BookingRow, "status"> & { status: BookingStatus };
 
-export type BookingDates = Pick<Booking, 'check_in' | 'check_out'>
+/** Det formuläret skickar när en bokning skapas. Pris och status sätts av servern. */
+export type NewBooking = Pick<Booking, "guest_name" | "guest_email" | "check_in" | "check_out" | "guests">;
+
+export type BookingUpdate = Partial<NewBooking & Pick<Booking, "status">>;
+
+export type BookingWithProperty = Booking & {
+  property: { property_id: string; title: string; location: string } | null;
+};
+
+export type BookingDates = Pick<Booking, "check_in" | "check_out">;

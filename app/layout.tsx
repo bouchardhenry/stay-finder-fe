@@ -29,17 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <Providers>
           <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
-            <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-4">
+            <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6 py-4">
               <Link href="/" className="text-xl font-bold">
                 Stay Finder
               </Link>
-              <Link
-                href="/host/properties/new"
-                className="text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
-              >
-                List a stay
-              </Link>
-              <AuthHeader/>
+              <AuthHeader />
             </div>
           </header>
           {children}

@@ -1,39 +1,24 @@
-export async function login(email: string, password: string) {
-  const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login/`);
+import { apiFetch, jsonBody } from "./api";
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      email,
-      password,
-    }),
-  });
+type UserResponse = { user: AuthUser };
 
-  if (response.ok) {
-    return true;
-  }
-  return false;
+export function login(email: string, password: string) {
+  return apiFetch<UserResponse>("/auth/login", { method: "POST", ...jsonBody({ email, password }) });
 }
 
-
-export async function getMe(): Promise<AuthUser | null> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me/`);
-
-  const response = await fetch(url, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+export function register(email: string, password: string) {
+  return apiFetch<UserResponse & { loggedIn: boolean }>("/auth/register", {
+    method: "POST",
+    ...jsonBody({ email, password }),
   });
+}
 
-  if (response.ok) {
-    const data = await response.json();
-    return data?.user as AuthUser | null;
-  }
-  return null;
+export function logout() {
+  return apiFetch<{ message: string }>("/auth/logout", { method: "POST" });
+}
+
+/** Vem är inloggad? null om ingen (backend svarar 401). */
+export async function getMe(): Promise<AuthUser | null> {
+  const result = await apiFetch<UserResponse>("/auth/me");
+  return result.ok ? result.data.user : null;
 }

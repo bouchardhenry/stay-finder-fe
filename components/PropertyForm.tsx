@@ -1,23 +1,16 @@
 "use client";
 
-import { SubmitEvent, useState, type FormEvent } from "react";
-import type { CreatePropertyState } from "@/utils/propertyService";
-
-const fieldClassName =
-  "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300";
-
-export type PropertyFormValues = {
-  title?: string;
-  description?: string;
-  location?: string;
-  kind?: string;
-  max_guests?: number;
-  price_per_night?: number;
-};
+import { useState, type SubmitEvent } from "react";
+import type { ApiErrorBody } from "@/types/api";
+import type { Property, PropertyInput } from "@/types/property";
+import { propertyFromForm } from "@/utils/propertyService";
+import FieldError from "./FieldError";
+import { buttonClassName, fieldClassName } from "./styles";
 
 type PropertyFormProps = {
-  action: (formData: FormData) => Promise<CreatePropertyState>;
-  values?: PropertyFormValues;
+  /** Returnerar null om det gick bra, annars felet från API:t. */
+  action: (property: PropertyInput) => Promise<ApiErrorBody | null>;
+  values?: Partial<Property>;
   submitLabel?: string;
   pendingLabel?: string;
 };
@@ -26,68 +19,54 @@ export default function PropertyForm({
   action,
   values,
   submitLabel = "Create stay",
-  pendingLabel = "Creating…",
+  pendingLabel = "Saving…",
 }: PropertyFormProps) {
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<ApiErrorBody | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    setError(undefined);
+    const property = propertyFromForm(new FormData(event.currentTarget));
+    setError(null);
     setPending(true);
     try {
-      const result = await action(formData);
-      setError(result.error);
+      setError(await action(property));
+    } catch {
+      setError({ message: "Could not reach the server" });
     } finally {
       setPending(false);
     }
   }
 
+  const fieldError = (name: keyof PropertyInput) => <FieldError message={error?.errors?.[name]} />;
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <label className="flex flex-col gap-1 text-sm">
         Title
-        <input
-          name="title"
-          required
-          defaultValue={values?.title}
-          className={fieldClassName}
-        />
+        <input name="title" required defaultValue={values?.title} className={fieldClassName} />
+        {fieldError("title")}
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Description
-        <textarea
-          name="description"
-          required
-          rows={4}
-          defaultValue={values?.description}
-          className={fieldClassName}
-        />
+        <textarea name="description" required rows={4} defaultValue={values?.description} className={fieldClassName} />
+        {fieldError("description")}
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Location
-        <input
-          name="location"
-          required
-          defaultValue={values?.location}
-          className={fieldClassName}
-        />
+        <input name="location" required defaultValue={values?.location} className={fieldClassName} />
+        {fieldError("location")}
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Kind
-        <select
-          name="kind"
-          required
-          defaultValue={values?.kind ?? ""}
-          className={fieldClassName}
-        >
+        <select name="kind" required defaultValue={values?.kind ?? ""} className={fieldClassName}>
           <option value="" disabled>
             Choose a kind
           </option>
           <option value="apartment">Apartment</option>
           <option value="villa">Villa</option>
         </select>
+        {fieldError("kind")}
       </label>
       <div className="grid grid-cols-2 gap-4">
         <label className="flex flex-col gap-1 text-sm">
@@ -100,9 +79,10 @@ export default function PropertyForm({
             defaultValue={values?.max_guests}
             className={fieldClassName}
           />
+          {fieldError("max_guests")}
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Price per night
+          Price per night (kr)
           <input
             name="price_per_night"
             type="number"
@@ -111,16 +91,11 @@ export default function PropertyForm({
             defaultValue={values?.price_per_night}
             className={fieldClassName}
           />
+          {fieldError("price_per_night")}
         </label>
       </div>
-      {error ? (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-      ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-fit rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
-      >
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error.message}</p>}
+      <button type="submit" disabled={pending} className={buttonClassName}>
         {pending ? pendingLabel : submitLabel}
       </button>
     </form>
